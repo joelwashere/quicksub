@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Upload, Languages } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -10,12 +9,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 
 export default function Home() {
-  const [sourceLanguage, setSourceLanguage] = useState<string>("")
-  const [targetLanguage, setTargetLanguage] = useState<string>("")
+  const [sourceLanguage, setSourceLanguage] = useState("")
+  const [targetLanguage, setTargetLanguage] = useState("")
   const [file, setFile] = useState<File | null>(null)
-  const [isDragging, setIsDragging] = useState<boolean>(false)
-  // Add a new state for the video link
-  const [videoLink, setVideoLink] = useState<string>("")
+  const [isDragging, setIsDragging] = useState(false)
+  const [videoLink, setVideoLink] = useState("")
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -23,16 +21,17 @@ export default function Home() {
     }
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(true)
   }
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
     setIsDragging(false)
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(false)
 
@@ -41,18 +40,14 @@ export default function Home() {
     }
   }
 
-  // Add a function to handle video link submission
-  const handleVideoLinkSubmit = (e: React.FormEvent) => {
+  const handleVideoLinkSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (videoLink.trim()) {
-      // Here you would handle the video link processing
       console.log("Processing video link:", videoLink)
-      // Reset the file if a link is provided
       setFile(null)
     }
   }
 
-  // Add this function near the top of the component, after other handler functions
   const handleTranslate = () => {
     if (file) {
       console.log("Translating uploaded video:", file.name)
@@ -79,40 +74,9 @@ export default function Home() {
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-2">
           <Languages className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold">Quicksub.app</h1>
+          <h1 className="text-xl font-bold">Quicksub</h1>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium">Source:</span>
-            <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                {languages.map((language) => (
-                  <SelectItem key={language.value} value={language.value}>
-                    {language.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium">Target:</span>
-            <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                {languages.map((language) => (
-                  <SelectItem key={language.value} value={language.value}>
-                    {language.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        
       </header>
 
       <div className="flex-1 p-6 flex flex-col items-center justify-center space-y-4">
@@ -162,26 +126,59 @@ export default function Home() {
                     </p>
                   </div>
                   <label htmlFor="video-upload">
-                    <Button as="span">Select Video</Button>
-                    <input
-                      id="video-upload"
-                      type="file"
-                      accept="video/*"
-                      className="sr-only"
-                      onChange={handleFileChange}
-                    />
+                    <Button asChild>
+                      <span>Select Video</span>
+                    </Button>
                   </label>
+                  <input
+                    id="video-upload"
+                    type="file"
+                    accept="video/*"
+                    className="sr-only"
+                    onChange={handleFileChange}
+                  />
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium">Source:</span>
+            <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map((language) => (
+                  <SelectItem key={language.value} value={language.value}>
+                    {language.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium">Target:</span>
+            <Select value={targetLanguage} onValueChange={setTargetLanguage}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map((language) => (
+                  <SelectItem key={language.value} value={language.value}>
+                    {language.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <Button className="w-full max-w-4xl" size="lg" onClick={handleTranslate} disabled={!file && !videoLink}>
-          Autosub
+          Translate Video
         </Button>
       </div>
     </main>
   )
 }
-
 
