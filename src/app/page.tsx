@@ -142,7 +142,7 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
-        <div className="flex items-center space-x-4">
+        <div className="flex sm:flex-col sm:space-y-4 md:flex-row md:space-y-0 items-center md:space-x-4">
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium">Source:</span>
             <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
