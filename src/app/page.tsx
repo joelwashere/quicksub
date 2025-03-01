@@ -60,7 +60,7 @@ export default function Home() {
       
       video.onloadedmetadata = () => {
         // Create an audio context
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioContext = new (window.AudioContext)();
         const source = audioContext.createMediaElementSource(video);
         const destination = audioContext.createMediaStreamDestination();
         source.connect(destination);
