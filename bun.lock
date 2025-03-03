@@ -9,7 +9,6 @@
         "add": "^2.0.6",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "dialog": "^0.3.1",
         "dotenv": "^16.4.7",
         "lucide-react": "^0.476.0",
         "next": "14.2.24",
@@ -359,8 +358,6 @@
     "define-properties": ["define-properties@1.2.1", "", { "dependencies": { "define-data-property": "^1.0.1", "has-property-descriptors": "^1.0.0", "object-keys": "^1.1.1" } }, "sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg=="],
 
     "delayed-stream": ["delayed-stream@1.0.0", "", {}, "sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ=="],
-
-    "dialog": ["dialog@0.3.1", "", { "bin": { "show_dialog": "./bin/dialog.js" } }, "sha512-RYndSaXW/tYkfVbUKmyQzerHH080Pis7YabDxIHXRdYO6yo9/VqTIhPRB5RpoHwYlixeiUOvJCF7di+lmBaH6w=="],
 
     "didyoumean": ["didyoumean@1.2.2", "", {}, "sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw=="],
 

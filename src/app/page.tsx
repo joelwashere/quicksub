@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef, useEffect, ChangeEvent, DragEvent } from 'react';
-import { AlertCircle, Upload, Loader, FileText, CheckCircle, Languages, Crown } from 'lucide-react';
+import { AlertCircle, Upload, Loader, FileText, Languages, Crown } from 'lucide-react';
 import OpenAI from 'openai';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,11 +15,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { createClient } from '@/utils/supabase/client';
-import Login from './login/page';
-import SignInDialog from '@/components/sign-in-dialog';
 import SignInAlertDialog from '@/components/sign-in-dialog';
 
 const openai = new OpenAI({ apiKey: "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", dangerouslyAllowBrowser: true });
