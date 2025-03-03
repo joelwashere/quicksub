@@ -9,10 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-alert-dialog": "^1.1.6",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-separator": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.2",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.49.1",
+    "add": "^2.0.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dialog": "^0.3.1",
     "dotenv": "^16.4.7",
     "lucide-react": "^0.476.0",
     "next": "14.2.24",
