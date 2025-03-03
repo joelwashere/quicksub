@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import "./globals.css";
-import SignInDialog from "@/components/sign-in-dialog";
 
 const opensans = Open_Sans({subsets: ["latin"]});
 
