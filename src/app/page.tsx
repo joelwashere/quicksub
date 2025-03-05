@@ -18,6 +18,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { createClient } from '@/utils/supabase/client';
 import SignInAlertDialog from '@/components/sign-in-dialog';
+import { checkoutAction } from '@/lib/payments/actions';
+import { createCheckoutSession } from '@/lib/payments/stripe';
+import { useRouter } from 'next/navigation';
 
 const openai = new OpenAI({ apiKey: "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", dangerouslyAllowBrowser: true });
 
@@ -43,25 +46,33 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [progress, setProgress] = useState<number>(0);
-  const [apiKey, setApiKey] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
   const [currentTier, setCurrentTier] = useState(TIERS.FREE);
   const [transcriptionsUsed, setTranscriptionsUsed] = useState(0);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const supabase = createClient()
   const [loggedIn, setLoggedIn] = useState(false)
 
+  const supabase = createClient()
+
   useEffect(() => {
-    supabase.auth.getUser().then((session) => {
-      const { data, error } = session
-      if(error || !data?.user) 
-        setLoggedIn(false);
-      else if(data.user)
-        setLoggedIn(true)
-    })
+    handleOpenChange(true)
   }, [])
+
+  const handleOpenChange = async(open: boolean) => {
+    console.log("Handling change in open")
+    await supabase.auth.getUser().then((session) => {
+      const { data, error } = session
+      if(error || !data?.user) {
+        setLoggedIn(false);
+        console.log("Not logged in")
+      }
+      else if(data.user) {
+        setLoggedIn(true)
+        console.log(data.user)
+      }
+    }) 
+  }
 
   // Load saved tier and usage from localStorage
   useEffect(() => {
@@ -254,20 +265,29 @@ export default function Home() {
       setIsLoading(false);
     }
   };
+  
+  const router = useRouter()
+
+  const handleUpgradeTier = async () => {
+
+    const url = await createCheckoutSession({userId: "hardar"})
+    
+    if(url) router.push(url)
+  }
 
   const changeTier = (tier: typeof TIERS.FREE | typeof TIERS.PLUS) => {
     setCurrentTier(tier);
-    console.log(loggedIn)
+    if(tier === TIERS.PLUS) {
+      handleUpgradeTier()
+    }
   };
 
   const transcriptionsRemaining = Math.max(0, currentTier.maxTranscriptions - transcriptionsUsed);
   const isLimitReached = transcriptionsUsed >= currentTier.maxTranscriptions;
 
-  const [isDialogOpen, setIsDialogOpen] = useState(true)
-
   return (
     <main className="flex flex-col max-w-[1366px] mx-auto min-h-screen bg-background">
-      <SignInAlertDialog isOpen={isDialogOpen} onOpenChange={setIsDialogOpen}/>
+      <SignInAlertDialog isOpen={!loggedIn} onOpenChange={handleOpenChange}/>
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-2">
           <Languages className="h-6 w-6 text-primary" />
@@ -275,29 +295,31 @@ export default function Home() {
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Transcriptions Remaining Display */}
-          <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gray-100">
-            {currentTier.name === "Plus" ? (
-              <Crown className="h-4 w-4 text-purple-500" />
-            ) : (
-              <FileText className="h-4 w-4 text-blue-500" />
-            )}
-            <span className={`text-sm font-medium ${isLimitReached ? 'text-red-500' : ''}`}>
-              {currentTier.name === "Plus" 
-                ? "Unlimited" 
-                : transcriptionsRemaining === 0 
-                ? "No transcriptions remaining" 
-                : `${transcriptionsRemaining} transcription${transcriptionsRemaining !== 1 ? 's' : ''} remaining`}
-            </span>
-          </div>
           
           {/* Tier Switcher */}
           <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="flex items-center space-x-1">
-                <span className={`h-2 w-2 rounded-full ${currentTier.color === 'bg-purple-600' ? 'bg-purple-600' : 'bg-blue-600'}`}></span>
-                <span>{currentTier.name} Plan</span>
-              </Button>
+            <DialogTrigger asChild className="">
+              <div className="flex gap-2">
+                {/* Transcriptions Remaining Display */}
+                <div className="hidden md:flex items-center space-x-2 px-3 py-1 rounded-full bg-gray-100">
+                  {currentTier.name === "Plus" ? (
+                  <Crown className="h-4 w-4 text-purple-500" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-blue-500" />
+                  )}
+                  <span className={"text-sm font-medium ${isLimitReached ? 'text-red-500' : ''}"}>
+                  {currentTier.name === "Plus" 
+                    ? "Unlimited" 
+                    : transcriptionsRemaining === 0 
+                    ? "No transcriptions remaining" 
+                    : `${transcriptionsRemaining} transcription${transcriptionsRemaining !== 1 ? 's' : ''} remaining`}
+                  </span>
+                </div>
+                <Button variant="outline" className="flex items-center space-x-1">
+                  <span className={`h-2 w-2 rounded-full ${currentTier.color === 'bg-purple-600' ? 'bg-purple-600' : 'bg-blue-600'}`}></span>
+                  <span>{currentTier.name} Plan</span>
+                </Button>
+              </div>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -324,7 +346,7 @@ export default function Home() {
 
                 <Card 
                   className={`cursor-pointer border-2 ${currentTier.name === 'Plus' ? 'border-purple-600' : 'border-gray-200'}`}
-                  onClick={() => changeTier(TIERS.PLUS)}
+                  onClick={handleUpgradeTier}
                   >
                   <CardContent className="flex flex-col items-center p-6 space-y-2">
                     <Crown className={`h-8 w-8 ${currentTier.name === 'Plus' ? 'text-purple-600' : 'text-gray-400'}`} />

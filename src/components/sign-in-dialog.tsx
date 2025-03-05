@@ -16,7 +16,8 @@ import { Separator } from "@/components/ui/separator"
 import { Label } from "@/components/ui/label"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { signIn } from "@/app/login/actions"
+import { signInWith } from "@/app/login/actions"
+import { createClient } from "@/utils/supabase/server"
 
 interface SignInAlertDialogProps {
   isOpen: boolean
@@ -41,12 +42,12 @@ export default function SignInAlertDialog({ isOpen, onOpenChange }: SignInAlertD
   }
 
   const handleGoogleSignIn = async () => {
-    signIn()
     console.log("Signing in with Google")
+    await signInWith("google")
   }
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+    <AlertDialog open={isOpen} onOpenChange={() => {}}>
       <AlertDialogContent className="sm:max-w-[425px]">
         <AlertDialogHeader>
           <AlertDialogTitle>Sign in to continue</AlertDialogTitle>

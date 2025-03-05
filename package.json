@@ -27,6 +27,7 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "shadcn": "^2.4.0-canary.9",
+    "stripe": "^17.7.0",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7"
   },

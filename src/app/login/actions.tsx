@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 
-export async function signIn() {
+export async function signInWith(provider: any) {
   const supabase = await createClient()
 
   // type-casting here for convenience
@@ -15,14 +15,13 @@ export async function signIn() {
   //}
 
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
+    provider,
     options: {
-      queryParams: {
-        prompt: "consent"
-      },
-      redirectTo: "http://quickbase.app/auth/callback",
+      redirectTo: "http://localhost:3000/auth/callback",
     },
   })
+
+  console.log(data)
 
   if(error) {
     redirect('/error')
@@ -30,6 +29,6 @@ export async function signIn() {
     redirect(data.url)
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/')
+  //revalidatePath('/', 'layout')
+  //redirect('/')
 }
