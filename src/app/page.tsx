@@ -56,7 +56,7 @@ export default function Home() {
   const supabase = createClient()
 
   useEffect(() => {
-    handleOpenChange(true)
+    //handleOpenChange(true)
   }, [])
 
   const handleOpenChange = async(open: boolean) => {
