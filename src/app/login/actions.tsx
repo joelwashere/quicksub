@@ -1,11 +1,11 @@
-'use server'
+'use client'
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/utils/supabase/client';
 
 export async function signInWith(provider: any) {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   // type-casting here for convenience
   // in practice, you should validate your inputs
@@ -17,7 +17,7 @@ export async function signInWith(provider: any) {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: `${window.location.origin}/auth/callback`,
     },
   })
 
