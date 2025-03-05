@@ -18,8 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { createClient } from '@/utils/supabase/client';
 import SignInAlertDialog from '@/components/sign-in-dialog';
-import { checkoutAction } from '@/lib/payments/actions';
-import { createCheckoutSession } from '@/lib/payments/stripe';
+//import { createCheckoutSession } from '@/lib/payments/stripe';
 import { useRouter } from 'next/navigation';
 
 const openai = new OpenAI({ apiKey: "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", dangerouslyAllowBrowser: true });
@@ -56,7 +55,7 @@ export default function Home() {
   const supabase = createClient()
 
   useEffect(() => {
-    //handleOpenChange(true)
+    handleOpenChange(true)
   }, [])
 
   const handleOpenChange = async(open: boolean) => {
@@ -270,9 +269,9 @@ export default function Home() {
 
   const handleUpgradeTier = async () => {
 
-    const url = await createCheckoutSession({userId: "hardar"})
+    //const url = await createCheckoutSession({userId: "hardar"})
     
-    if(url) router.push(url)
+    //f(url) router.push(url)
   }
 
   const changeTier = (tier: typeof TIERS.FREE | typeof TIERS.PLUS) => {
