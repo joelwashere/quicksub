@@ -6,11 +6,11 @@ export const stripe = new Stripe("sk_test_51QykwoPDHTn4Rw2wVWrFxuKoVFc2T2OWyNQZe
     typescript: true 
 })
 
-type Props = {
+type SessionProps = {
     userId: string;
 }
 
-export async function createCheckoutSession({userId}: Props) {
+export async function createCheckoutSession({userId}: SessionProps) {
 
     const { url } = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],

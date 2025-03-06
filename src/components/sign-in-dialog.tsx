@@ -19,12 +19,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { signInWith } from "@/app/login/actions"
 import { createClient } from "@/utils/supabase/server"
 
-interface SignInAlertDialogProps {
+interface SignInAlertProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export default function SignInAlertDialog({ isOpen, onOpenChange }: SignInAlertDialogProps) {
+export default function SignInDialog({ isOpen, onOpenChange }: SignInAlertProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)

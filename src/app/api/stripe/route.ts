@@ -1,9 +1,9 @@
 import Stripe from 'stripe';
-//import { handlePurchaseSubscription, stripe } from '@/lib/payments/stripe';
+import { handlePurchaseSubscription, stripe } from '@/lib/payments/stripe';
 import { NextRequest, NextResponse } from 'next/server';
 
 const webhookSecret = "whsec_6481456cd435f8872945ea89d0211c78192af517c4de6d921c117daa23ae2048"
-/*
+
 export async function POST(request: NextRequest) {
   const payload = await request.text();
   const signature = request.headers.get('stripe-signature') as string;
@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
     case 'customer.subscription.updated':
     case 'customer.subscription.deleted':
       const subscription = event.data.object as Stripe.Subscription;
-      await handleSubscriptionChange(subscription);
+      //await handleSubscriptionChange(subscription);
       break;
     default:
       console.log(`Unhandled event type ${event.type}`);
   }
 
   return NextResponse.json({ received: true });
-}*/
+}

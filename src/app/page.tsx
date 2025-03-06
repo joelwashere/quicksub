@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { createClient } from '@/utils/supabase/client';
-import SignInAlertDialog from '@/components/sign-in-dialog';
+import SignInDialog from '@/components/sign-in-dialog';
 //import { createCheckoutSession } from '@/lib/payments/stripe';
 import { useRouter } from 'next/navigation';
 
@@ -52,6 +52,7 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loggedIn, setLoggedIn] = useState(false)
 
+  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
@@ -265,8 +266,6 @@ export default function Home() {
     }
   };
   
-  const router = useRouter()
-
   const handleUpgradeTier = async () => {
 
     //const url = await createCheckoutSession({userId: "hardar"})
@@ -286,7 +285,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-col max-w-[1366px] mx-auto min-h-screen bg-background">
-      <SignInAlertDialog isOpen={!loggedIn} onOpenChange={handleOpenChange}/>
+      <SignInDialog isOpen={!loggedIn} onOpenChange={handleOpenChange}/>
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-2">
           <Languages className="h-6 w-6 text-primary" />
