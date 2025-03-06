@@ -268,9 +268,9 @@ export default function Home() {
   
   const handleUpgradeTier = async () => {
 
-    //const url = await createCheckoutSession({userId: "hardar"})
+    const url = await createCheckoutSession({userId: "hardar"})
     
-    //f(url) router.push(url)
+    if(url) router.push(url)
   }
 
   const changeTier = (tier: typeof TIERS.FREE | typeof TIERS.PLUS) => {
