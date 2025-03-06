@@ -1,8 +1,13 @@
 import Stripe from 'stripe';
-import { handlePurchaseSubscription, stripe } from '@/lib/payments/stripe';
+import { handlePurchaseSubscription } from '@/lib/payments/stripe';
 import { NextRequest, NextResponse } from 'next/server';
 
 const webhookSecret = "whsec_6481456cd435f8872945ea89d0211c78192af517c4de6d921c117daa23ae2048"
+
+const stripe = new Stripe("sk_test_51QykwoPDHTn4Rw2wVWrFxuKoVFc2T2OWyNQZefvO1key4MIywA4fsBh9W4YZEZedlPoTdwNVLfKP2A22d7dIYhmn00t3bSetbx", {
+  apiVersion: "2025-02-24.acacia",
+  httpClient: Stripe.createFetchHttpClient(),
+});
 
 export async function POST(request: NextRequest) {
   const payload = await request.text();
@@ -11,7 +16,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    event = await stripe.webhooks.constructEventAsync(payload, signature, webhookSecret);
   } catch (err) {
     console.error('Webhook signature verification failed.', err);
     return NextResponse.json(
@@ -24,7 +29,7 @@ export async function POST(request: NextRequest) {
     case 'checkout.session.completed':
         const payment_status = event.data.object.payment_status;
         if(payment_status === "paid") {
-            //await handlePurchaseSubscription(event);
+            await handlePurchaseSubscription(event);
             break
         }
     case 'customer.subscription.updated':
