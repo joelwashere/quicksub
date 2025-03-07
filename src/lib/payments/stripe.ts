@@ -7,10 +7,6 @@ const stripe = new Stripe("sk_test_51QykwoPDHTn4Rw2wVWrFxuKoVFc2T2OWyNQZefvO1key
     typescript: true 
 })
 
-type SessionProps = {
-    userId: string;
-}
-
 export async function createStripeSession() {
 
     try {
