@@ -18,8 +18,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { createClient } from '@/utils/supabase/client';
 import SignInDialog from '@/components/sign-in-dialog';
-import { createCheckoutSession } from '@/lib/payments/stripe';
 import { useRouter } from 'next/navigation';
+import ProfileWidget from '@/components/profile-widget';
+import { createStripeSession } from '@/lib/payments/stripe';
+import { User } from '@supabase/auth-js';
 
 const openai = new OpenAI({ apiKey: "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", dangerouslyAllowBrowser: true });
 
@@ -51,6 +53,7 @@ export default function Home() {
   const [showLimitWarning, setShowLimitWarning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loggedIn, setLoggedIn] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
 
   const router = useRouter()
   const supabase = createClient()
@@ -69,6 +72,7 @@ export default function Home() {
       }
       else if(data.user) {
         setLoggedIn(true)
+        setUser(data.user)
         console.log(data.user)
       }
     }) 
@@ -93,6 +97,14 @@ export default function Home() {
     localStorage.setItem('userTier', currentTier.name === 'Plus' ? 'PLUS' : 'FREE');
     localStorage.setItem('transcriptionsUsed', transcriptionsUsed.toString());
   }, [currentTier, transcriptionsUsed]);
+
+  const handleSignOut = () => {
+    alert("Signing out...")
+  }
+
+  const handleManageSubscription = () => {
+    alert("Redirecting to subscription management...")
+  }
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const selectedFile = e.target.files?.[0];
@@ -268,7 +280,7 @@ export default function Home() {
   
   const handleUpgradeTier = async () => {
 
-    const url = await createCheckoutSession({userId: "hardar"})
+    const url = await createStripeSession()
     
     if(url) router.push(url)
   }
@@ -359,6 +371,12 @@ export default function Home() {
               </div>
             </DialogContent>
           </Dialog>
+        <ProfileWidget
+              user={{
+                name: user?.identities?.[0].identity_data?.full_name || "User",
+                email: user?.email  || "",
+              }}
+            />
         </div>
       </header>
 

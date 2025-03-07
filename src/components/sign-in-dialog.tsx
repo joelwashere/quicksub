@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator"
 import { Label } from "@/components/ui/label"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { signInWith } from "@/app/login/actions"
+import { signInWith } from "@/app/auth/actions"
 import { createClient } from "@/utils/supabase/server"
 
 interface SignInAlertProps {
