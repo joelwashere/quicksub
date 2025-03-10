@@ -1,25 +1,9 @@
 "use client"
 
 import React, { useState, useRef, useEffect, ChangeEvent, DragEvent } from 'react';
-import { AlertCircle, Upload, Loader, FileText, Languages, Crown } from 'lucide-react';
 import OpenAI from 'openai';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { createClient } from '@/utils/supabase/client';
-import SignInDialog from '@/components/sign-in-dialog';
 import { useRouter } from 'next/navigation';
-import ProfileWidget from '@/components/profile-widget';
 import { createStripeSession } from '@/lib/payments/stripe';
 import { User } from '@supabase/auth-js';
 
