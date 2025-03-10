@@ -2,7 +2,7 @@
 import { createClient as createClientLocal } from "@/utils/supabase/client";
 import { Stripe } from "stripe";
 
-const stripe = new Stripe("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0dm1ycnFocmx3dmZ6dm13ZWF4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDg5NTc4NiwiZXhwIjoyMDU2NDcxNzg2fQ.FI-Yvwd67cdAcvflCz8rdZ5agY61RPeonzVFcWB1ryY")
+const stripe = new Stripe("sk_test_51QykwoPDHTn4Rw2wVWrFxuKoVFc2T2OWyNQZefvO1key4MIywA4fsBh9W4YZEZedlPoTdwNVLfKP2A22d7dIYhmn00t3bSetbx")
 
 export async function createStripeSession() {
 
