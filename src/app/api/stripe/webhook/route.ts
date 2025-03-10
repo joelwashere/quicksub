@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
               subscription_plan: "plus",
               updated_at: new Date().toISOString()
             })
-          .eq("stripe_customer_id", "cus_RunSPdi2fZ4TPb")
+          .eq("stripe_customer_id", "cus_Rv5nHAkF5ybRqa")
           
         if(error)
           throw new Error("Failed to update table " + error)
