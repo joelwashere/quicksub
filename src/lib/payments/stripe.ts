@@ -1,16 +1,16 @@
 
-import { createClient } from "@/utils/supabase/client";
+import { createClient as createClientLocal } from "@/utils/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe"
 
 const stripe = new Stripe("sk_test_51QykwoPDHTn4Rw2wVWrFxuKoVFc2T2OWyNQZefvO1key4MIywA4fsBh9W4YZEZedlPoTdwNVLfKP2A22d7dIYhmn00t3bSetbx", {
     apiVersion: "2025-02-24.acacia",
-    typescript: true 
 })
 
 export async function createStripeSession() {
 
     try {
-        const supabase = await createClient();
+        const supabase = await createClientLocal();
 
         const { data, error } = await supabase.auth.getUser()
 
@@ -38,27 +38,31 @@ export async function createStripeSession() {
 
         console.log(`🔎 Found profile: ${profile}`);
         
-        if (!profile?.stripe_customer_id) {
+        if (!profile.stripe_customer_id) {
             throw new Error("No Stripe customer found");
         }
-
+        
+        console.log("Subscription plan: " + profile.subscription_plan);
         // Create Portal session if already subscribed
         if (profile.subscription_plan === "plus") {
             const session = await stripe.billingPortal.sessions.create({
                 customer: profile.stripe_customer_id,
                 return_url: `${origin}`,
             });
+
+            return session.url
         }
 
         const { url } = await stripe.checkout.sessions.create({
+            customer: profile.stripe_customer_id,
             payment_method_types: ["card"],
             line_items: [{
                 price: "price_1QynKDPDHTn4Rw2wRlLeYMUk",
                 quantity: 1
             }],
             mode: "subscription",
-            success_url: `${origin}`,
-            cancel_url: `${origin}/error`,
+            success_url: `${origin}/api/stripe/checkout?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${origin}`,
         
         })
 
@@ -67,10 +71,6 @@ export async function createStripeSession() {
         console.error("Error in create-stripe-session: " + error)
         return `${origin}/error`;
     }
-}
-
-export async function handlePurchaseSubscription(subscription: Stripe.CheckoutSessionCompletedEvent) {
-    console.log("Payment was successful " +  subscription.data.object.metadata)
 }
 
 export async function getStripeProducts() {

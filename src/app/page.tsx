@@ -63,7 +63,6 @@ export default function Home() {
   }, [])
 
   const handleOpenChange = async(open: boolean) => {
-    console.log("Handling change in open")
     await supabase.auth.getUser().then((session) => {
       const { data, error } = session
       if(error || !data?.user) {
@@ -73,9 +72,24 @@ export default function Home() {
       else if(data.user) {
         setLoggedIn(true)
         setUser(data.user)
-        console.log(data.user)
       }
     }) 
+/*    try {
+
+      const {data, error} = await supabase
+        .from("profiles")
+        .update({subscription_plan: "plus"})
+        .eq("name", "Joel")
+
+      if (error)
+        throw new Error("Failed to select profile " + error.message)
+
+      console.log(data)
+
+    } catch(error) {
+      console.log(error)
+    }
+    */
   }
 
   // Load saved tier and usage from localStorage
@@ -281,7 +295,7 @@ export default function Home() {
   const handleUpgradeTier = async () => {
 
     const url = await createStripeSession()
-    
+    console.log("Created session " + url)
     if(url) router.push(url)
   }
 

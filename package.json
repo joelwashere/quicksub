@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "stripe": "stripe listen --forward-to localhost:3000/api/stripe"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.6",
@@ -26,6 +27,7 @@
     "lucide-react": "^0.476.0",
     "next": "14.2.24",
     "openai": "^4.86.1",
+    "raw-body": "^3.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "shadcn": "^2.4.0-canary.9",

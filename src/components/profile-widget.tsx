@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { signOut } from "@/app/auth/actions"
 import { createStripeSession } from "@/lib/payments/stripe"
+import { useRouter } from "next/navigation"
 
 interface ProfileWidgetProps {
   user?: {
@@ -28,12 +29,19 @@ export default function ProfileWidget({
   },
 }: ProfileWidgetProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
 
   const initials = user.name
     .split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
+
+  const handleManageSubscription = async() => {
+    const url = await createStripeSession()
+
+    if(url) router.push(url)
+  }
 
   return (
     <div className="relative">
@@ -44,9 +52,9 @@ export default function ProfileWidget({
             className="flex items-center gap-2 px-2 py-1 hover:bg-accent rounded-full"
             aria-label="Profile menu"
           >
-            {/* <Avatar className="h-8 w-8">
+            <Avatar className="h-8 w-8">
               <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>*/ }
+            </Avatar>
             {/* <span className="font-medium hidden sm:inline-block">{user.name}</span> */}
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </Button>
@@ -59,7 +67,7 @@ export default function ProfileWidget({
             </div>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer flex items-center gap-2" onClick={createStripeSession}>
+          <DropdownMenuItem className="cursor-pointer flex items-center gap-2" onClick={handleManageSubscription}>
             <CreditCard className="h-4 w-4" />
             <span>Manage Subscription</span>
           </DropdownMenuItem>
