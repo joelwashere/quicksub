@@ -11,34 +11,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { Label } from "@/components/ui/label"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { signInWith } from "@/app/auth/actions"
 
-interface SignInAlertProps {
-  isOpen: boolean
-  onOpenChange: (open: boolean) => void
-}
-
-export default function SignInDialog({ isOpen, onOpenChange }: SignInAlertProps) {
+export default function SignInDialog({ isOpen }: {isOpen: boolean}) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
-
-  const handleEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    if (!email || !password) {
-      setError("Please fill in all fields")
-      return
-    }
-
-    console.log("Signing in with email:", email)
-  }
 
   const handleGoogleSignIn = async () => {
     console.log("Signing in with Google")
@@ -61,45 +41,6 @@ export default function SignInDialog({ isOpen, onOpenChange }: SignInAlertProps)
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
-        {false && <form onSubmit={handleEmailSignIn} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Button variant="link" className="p-0 h-auto text-xs">
-                Forgot password?
-              </Button>
-            </div>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full">
-            Sign In with Email
-          </Button>
-        </form> }
-
-        { false && <div className="relative my-4">
-          <Separator />
-          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
-            OR
-          </span>
-        </div> }
 
         <Button
           onClick={handleGoogleSignIn}

@@ -311,7 +311,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-col max-w-[1366px] mx-auto min-h-screen bg-background">
-      <SignInDialog isOpen={!loggedIn} onOpenChange={handleOpenChange}/>
+      <SignInDialog isOpen={!loggedIn} />
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-2">
           <Languages className="h-6 w-6 text-primary" />
