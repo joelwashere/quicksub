@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch(error) {
-      console.log(`Webhook Error: ` + error)
+      console.log(`Webhook Error : ` + error)
   }
 
   console.log("Ended webhook")
