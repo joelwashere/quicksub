@@ -16,9 +16,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { signInWith } from "@/app/auth/actions"
 
 export default function SignInDialog({ isOpen }: {isOpen: boolean}) {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
 
   const handleGoogleSignIn = async () => {
     console.log("Signing in with Google")
@@ -34,13 +31,6 @@ export default function SignInDialog({ isOpen }: {isOpen: boolean}) {
             To access the app, please enter your credentials.
           </AlertDialogDescription>
         </AlertDialogHeader>
-
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
 
         <Button
           onClick={handleGoogleSignIn}

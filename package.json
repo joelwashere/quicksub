@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "stripe": "stripe listen --forward-to localhost:3000/api/stripe"
+    "stripe": "stripe listen --forward-to localhost:3000/api/stripe/webhook"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.6",
