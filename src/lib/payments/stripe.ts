@@ -3,9 +3,7 @@ import { createClient as createClientLocal } from "@/utils/supabase/client";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe"
 
-const stripe = new Stripe("sk_test_51QykwoPDHTn4Rw2wVWrFxuKoVFc2T2OWyNQZefvO1key4MIywA4fsBh9W4YZEZedlPoTdwNVLfKP2A22d7dIYhmn00t3bSetbx", {
-    apiVersion: "2025-02-24.acacia",
-})
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function createStripeSession() {
 
@@ -61,7 +59,7 @@ export async function createStripeSession() {
                 quantity: 1
             }],
             mode: "subscription",
-            success_url: `${origin}/api/stripe/checkout?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${origin}`,
             cancel_url: `${origin}`,
         
         })
