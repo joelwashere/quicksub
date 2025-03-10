@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { signOut } from "@/app/auth/actions"
-import { createStripeSession } from "@/lib/payments/stripe"
+import { createStripeSession } from "@/utils/payments/stripe"
 import { useRouter } from "next/navigation"
 
 interface ProfileWidgetProps {

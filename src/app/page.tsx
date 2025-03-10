@@ -17,11 +17,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { createClient } from '@/utils/supabase/client';
-import SignInDialog from '@/components/sign-in-dialog';
 import { useRouter } from 'next/navigation';
-import ProfileWidget from '@/components/profile-widget';
-import { createStripeSession } from '@/lib/payments/stripe';
+import { createStripeSession } from '@/utils/payments/stripe';
 import { User } from '@supabase/auth-js';
+import SignInDialog from '@/components/sign-in-dialog';
+import ProfileWidget from '@/components/profile-widget';
 
 const openai = new OpenAI({ apiKey: "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", dangerouslyAllowBrowser: true });
 
@@ -59,10 +59,10 @@ export default function Home() {
   const supabase = createClient()
 
   useEffect(() => {
-    handleOpenChange(true)
+    handleOpenChange()
   }, [])
 
-  const handleOpenChange = async(open: boolean) => {
+  const handleOpenChange = async() => {
     await supabase.auth.getUser().then((session) => {
       const { data, error } = session
       if(error || !data?.user) {
@@ -311,7 +311,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-col max-w-[1366px] mx-auto min-h-screen bg-background">
-      {/*<SignInDialog isOpen={!loggedIn} />*/}
+      <SignInDialog isOpen={!loggedIn} />
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-2">
           <Languages className="h-6 w-6 text-primary" />
