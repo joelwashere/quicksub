@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
+import { Stripe } from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -52,13 +52,12 @@ export async function POST(request: NextRequest) {
               subscription_plan: "plus",
               updated_at: new Date().toISOString()
             })
-          .eq("stripe_customer_id", "cus_Rv5nHAkF5ybRqa")
+          .eq("stripe_customer_id", session.customer)
           
         if(error)
           throw new Error("Failed to update table " + error)
 
         console.log(data)
-        console.log(session.customer)
           
         break
       }
@@ -68,6 +67,5 @@ export async function POST(request: NextRequest) {
       console.log(`Webhook Error: ` + error)
   }
 
-  console.log("Ended webhook")
   return NextResponse.json({});
 }
