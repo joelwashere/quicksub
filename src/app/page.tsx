@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect, ChangeEvent, DragEvent } from 'react';
 import { AlertCircle, Upload, Loader, FileText, Languages, Crown } from 'lucide-react';
-import OpenAI from 'openai';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -22,8 +21,6 @@ import { createStripeSession } from '@/utils/payments/stripe';
 import { User } from '@supabase/auth-js';
 import SignInDialog from '@/components/sign-in-dialog';
 import ProfileWidget from '@/components/profile-widget';
-
-const openai = new OpenAI({ apiKey: "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", dangerouslyAllowBrowser: true });
 
 // Tier definitions
 const TIERS = {
@@ -59,10 +56,11 @@ export default function Home() {
   const supabase = createClient()
 
   useEffect(() => {
-    handleOpenChange()
+    initUI()
   }, [])
 
-  const handleOpenChange = async() => {
+  //Initializes the UI values based on user info
+  const initUI = async() => {
     await supabase.auth.getUser().then((session) => {
       const { data, error } = session
       if(error || !data?.user) {
@@ -73,51 +71,42 @@ export default function Home() {
         setLoggedIn(true)
         setUser(data.user)
       }
-    }) 
-/*    try {
+    })
 
-      const {data, error} = await supabase
+    try {
+
+      const { data, error } = await supabase
         .from("profiles")
-        .update({subscription_plan: "plus"})
-        .eq("name", "Joel")
-
-      if (error)
-        throw new Error("Failed to select profile " + error.message)
-
-      console.log(data)
-
-    } catch(error) {
+        .select("subscription_plan")
+        .single()
+      
+      //console.log(data)
+      
+      setCurrentTier(data?.subscription_plan == 'plus' ? TIERS.PLUS : TIERS.FREE);
+      
+    } catch (error) {
       console.log(error)
     }
-    */
+    
+    try {
+      const {data, error} = await supabase
+      .from("usage_tracking")
+      .select("transcriptions_created")
+      .single()
+      
+      setTranscriptionsUsed(data?.transcriptions_created);
+    } catch (error) {
+      console.log(error)
+    }
   }
-
-  // Load saved tier and usage from localStorage
-  useEffect(() => {
-    const savedTier = localStorage.getItem('userTier');
-    const savedUsage = localStorage.getItem('transcriptionsUsed');
-    
-    if (savedTier) {
-      setCurrentTier(savedTier === 'PLUS' ? TIERS.PLUS : TIERS.FREE);
-    }
-    
-    if (savedUsage) {
-      setTranscriptionsUsed(parseInt(savedUsage, 10));
-    }
-  }, []);
-
-  // Save tier and usage changes to localStorage
-  useEffect(() => {
-    localStorage.setItem('userTier', currentTier.name === 'Plus' ? 'PLUS' : 'FREE');
-    localStorage.setItem('transcriptionsUsed', transcriptionsUsed.toString());
-  }, [currentTier, transcriptionsUsed]);
 
   const handleSignOut = () => {
     alert("Signing out...")
   }
 
-  const handleManageSubscription = () => {
-    alert("Redirecting to subscription management...")
+  const handleManageSubscription = async () => {
+    const url = await createStripeSession()
+    router.push(url!)
   }
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
@@ -170,90 +159,14 @@ export default function Home() {
     e.preventDefault();
   };
 
-  const extractAudio = async (videoFile: File): Promise<Blob> => {
-    return new Promise<Blob>((resolve, reject) => {
-      // Create an off-screen video element
-      const video = document.createElement('video');
-      video.src = URL.createObjectURL(videoFile);
-      
-      video.onloadedmetadata = () => {
-        // Create an audio context
-        const audioContext = new (window.AudioContext)();
-        const source = audioContext.createMediaElementSource(video);
-        const destination = audioContext.createMediaStreamDestination();
-        source.connect(destination);
-        
-        // Create a MediaRecorder to capture audio
-        const recorder = new MediaRecorder(destination.stream);
-        const chunks: BlobPart[] = [];
-        
-        recorder.ondataavailable = (e) => {
-          chunks.push(e.data);
-        };
-        
-        recorder.onstop = () => {
-          const blob = new Blob(chunks, { type: 'audio/webm' });
-          resolve(blob);
-        };
-        
-        // Start recording and playing
-        recorder.start();
-        video.play();
-        
-        // Stop recording when the video ends
-        video.onended = () => {
-          recorder.stop();
-          video.remove();
-        };
-        
-        // Fallback if video.onended doesn't fire
-        setTimeout(() => {
-          if (recorder.state === 'recording') {
-            recorder.stop();
-            video.remove();
-          }
-        }, video.duration * 1000 + 1000); // Add 1 second buffer
-      };
-      
-      video.onerror = () => {
-        reject(new Error('Failed to load video'));
-      };
-    });
-  };
-
-  const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
-    if (!openai.apiKey) {
-      throw new Error('Please enter your API key');
-    }
-
-    const audiofile = new File([audioBlob], 'audiofile', {
-      type: 'audio/wav',
-    });
-
-    try {
-      const transcription = await openai.audio.transcriptions.create({
-        file: audiofile, 
-        model: "whisper-1",
-        response_format: "text"
-      });
-
-      return transcription;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Transcription failed: ${error.message}`);
-      }
-      throw new Error('Transcription failed with an unknown error');
-    }
-  };
+  //TODO : Create a function "canTranscribe" that returns a boolean after a database query
+  //This will prevent inconsistency between old local data and changes made to the database
+  const transcriptionsRemaining = Math.max(0, currentTier.maxTranscriptions - transcriptionsUsed);
+  const isLimitReached = transcriptionsUsed >= currentTier.maxTranscriptions;
 
   const handleTranscribe = async (): Promise<void> => {
     if (!file) {
       setError('Please upload a video file first.');
-      return;
-    }
-
-    if (!openai.apiKey) {
-      setError('No API key detected.');
       return;
     }
 
@@ -269,18 +182,23 @@ export default function Home() {
 
     try {
       setProgress(30);
-      const audioBlob = await extractAudio(file);
+      //const audioBlob = await extractAudio(file);
       
       setProgress(60);
-      const transcriptionText = await transcribeAudio(audioBlob);
+      //const transcriptionText = await transcribeAudio(audioBlob);
       
       setProgress(100);
-      setTranscription(transcriptionText);
+      //setTranscription(transcriptionText);
       
       // Increment usage count
+      //TODO : Remove this when we implement the increment through the API call
       setTranscriptionsUsed(prev => prev + 1);
 
-      console.log(transcriptionText);
+      //console.log(transcriptionText);
+      const transcription = await fetch(`/api/create-transcription`, {
+        method: "POST",
+        body: JSON.stringify({ title: file.name, description: "Description of file" })
+      })
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -291,23 +209,6 @@ export default function Home() {
       setIsLoading(false);
     }
   };
-  
-  const handleUpgradeTier = async () => {
-
-    const url = await createStripeSession()
-    console.log("Created session " + url)
-    if(url) router.push(url)
-  }
-
-  const changeTier = (tier: typeof TIERS.FREE | typeof TIERS.PLUS) => {
-    setCurrentTier(tier);
-    if(tier === TIERS.PLUS) {
-      handleUpgradeTier()
-    }
-  };
-
-  const transcriptionsRemaining = Math.max(0, currentTier.maxTranscriptions - transcriptionsUsed);
-  const isLimitReached = transcriptionsUsed >= currentTier.maxTranscriptions;
 
   return (
     <main className="flex flex-col max-w-[1366px] mx-auto min-h-screen bg-background">
@@ -355,7 +256,7 @@ export default function Home() {
               <div className="grid grid-cols-2 gap-4 py-4">
                 <Card 
                   className={`cursor-pointer border-2 ${currentTier.name === 'Free' ? 'border-blue-600' : 'border-gray-200'}`}
-                  onClick={() => changeTier(TIERS.FREE)}
+                  onClick={handleManageSubscription}
                   >
                   <CardContent className="flex flex-col items-center p-6 space-y-2">
                     <FileText className={`h-8 w-8 ${currentTier.name === 'Free' ? 'text-blue-600' : 'text-gray-400'}`} />
@@ -370,7 +271,7 @@ export default function Home() {
 
                 <Card 
                   className={`cursor-pointer border-2 ${currentTier.name === 'Plus' ? 'border-purple-600' : 'border-gray-200'}`}
-                  onClick={handleUpgradeTier}
+                  onClick={handleManageSubscription}
                   >
                   <CardContent className="flex flex-col items-center p-6 space-y-2">
                     <Crown className={`h-8 w-8 ${currentTier.name === 'Plus' ? 'text-purple-600' : 'text-gray-400'}`} />
@@ -533,8 +434,8 @@ export default function Home() {
             <AlertDialogAction 
               className="bg-purple-600 text-white hover:bg-purple-700"
               onClick={() => {
-                changeTier(TIERS.PLUS);
                 setShowLimitWarning(false);
+                handleManageSubscription()
               }}
               >
               Upgrade to Plus
