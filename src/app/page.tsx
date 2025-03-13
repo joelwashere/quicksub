@@ -21,7 +21,6 @@ import { createStripeSession } from '@/utils/payments/stripe';
 import { User } from '@supabase/auth-js';
 import SignInDialog from '@/components/sign-in-dialog';
 import ProfileWidget from '@/components/profile-widget';
-import { copyFileToTemp, createTranscription, uploadMedia } from '@/utils/useAPI';
 
 // Tier definitions
 const TIERS = {
