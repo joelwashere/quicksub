@@ -1,6 +1,6 @@
 {
   "name": "quicksub",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -27,13 +27,15 @@
     "lucide-react": "^0.476.0",
     "next": "14.2.24",
     "openai": "^4.86.1",
+    "promisify": "^0.0.3",
     "raw-body": "^3.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "shadcn": "^2.4.0-canary.9",
     "stripe": "^17.7.0",
     "tailwind-merge": "^3.0.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

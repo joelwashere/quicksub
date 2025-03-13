@@ -21,6 +21,7 @@ import { createStripeSession } from '@/utils/payments/stripe';
 import { User } from '@supabase/auth-js';
 import SignInDialog from '@/components/sign-in-dialog';
 import ProfileWidget from '@/components/profile-widget';
+import { copyFileToTemp, createTranscription, uploadMedia } from '@/utils/useAPI';
 
 // Tier definitions
 const TIERS = {
@@ -37,6 +38,17 @@ const TIERS = {
     description: "Unlimited video transcriptions"
   }
 };
+
+// Supported audio and video mime types
+const SUPPORTED_AUDIO_TYPES = [
+  'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave', 'audio/x-wav',
+  'audio/ogg', 'audio/webm', 'audio/flac', 'audio/aac', 'audio/mp4'
+];
+
+const SUPPORTED_VIDEO_TYPES = [
+  'video/mp4', 'video/mpeg', 'video/webm', 'video/quicktime', 'video/x-msvideo',
+  'video/x-ms-wmv', 'video/x-matroska'
+];
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -159,8 +171,6 @@ export default function Home() {
     e.preventDefault();
   };
 
-  //TODO : Create a function "canTranscribe" that returns a boolean after a database query
-  //This will prevent inconsistency between old local data and changes made to the database
   const transcriptionsRemaining = Math.max(0, currentTier.maxTranscriptions - transcriptionsUsed);
   const isLimitReached = transcriptionsUsed >= currentTier.maxTranscriptions;
 
@@ -182,23 +192,31 @@ export default function Home() {
 
     try {
       setProgress(30);
+      const formData = new FormData();
+      formData.append('file', file);
+      const pathToFile = await fetch(`/api/upload-media`, {
+        method: "POST",
+        body: formData
+      })
+      // = await uploadMedia(formData)
       //const audioBlob = await extractAudio(file);
+      const text = await pathToFile.text()
+      const parsed = JSON.parse(text)
       
       setProgress(60);
-      //const transcriptionText = await transcribeAudio(audioBlob);
-      
-      setProgress(100);
-      //setTranscription(transcriptionText);
-      
-      // Increment usage count
-      //TODO : Remove this when we implement the increment through the API call
-      setTranscriptionsUsed(prev => prev + 1);
-
-      //console.log(transcriptionText);
       const transcription = await fetch(`/api/create-transcription`, {
         method: "POST",
-        body: JSON.stringify({ title: file.name, description: "Description of file" })
+        body: JSON.stringify({ title: file.name, description: "", filePath: parsed.path})
       })
+      //const transcription = await createTranscription(file.name, "A video I'd like to transcribe", pathToFile.path)
+      const responseText = await transcription.text()
+      const parsedTranscription = JSON.parse(responseText)
+      setProgress(100);
+      
+      setTranscription(parsedTranscription.text);
+
+      //console.log(transcriptiom?);
+
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
