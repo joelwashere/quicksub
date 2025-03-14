@@ -35,7 +35,7 @@ const TIERS = {
     name: "Plus",
     maxTranscriptions: Infinity,
     color: "bg-purple-600",
-    description: "Unlimited video transcriptions"
+    description: "Transcribe up to 100 videos"
   }
 };
 
@@ -226,18 +226,19 @@ export default function Home() {
 
       setProgress(30);
       if (file) {
-        const formData = new FormData();
+        /*const formData = new FormData();
         formData.append('file', file);
         const uploadedFile = await fetch(`/api/upload-media`, {
           method: "POST",
           body: formData
-        })
+        })*/
         title = file.name
-        text = await uploadedFile.text()
-        parsed = JSON.parse(text)
-        pathToFile = parsed.path
+        //text = await uploadedFile.text()
+        //parsed = JSON.parse(text)
+        //pathToFile = parsed.path
+        pathToFile = file.formData
       } else if (isYoutubeVideo && videoId) {
-        const downloadedVideo = await downloadVideo(videoId)
+        const downloadedVideo = await downloadVideo(videoUrl)
         if (downloadedVideo.success) {
           pathToFile = downloadedVideo.filePath
           title = "Video"
@@ -294,7 +295,7 @@ export default function Home() {
                   )}
                   <span className={"text-sm font-medium ${isLimitReached ? 'text-red-500' : ''}"}>
                   {currentTier.name === "Plus" 
-                    ? "Unlimited" 
+                    ? "100" 
                     : transcriptionsRemaining === 0 
                     ? "No transcriptions remaining" 
                     : `${transcriptionsRemaining} transcription${transcriptionsRemaining !== 1 ? 's' : ''} remaining`}

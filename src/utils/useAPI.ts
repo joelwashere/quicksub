@@ -6,6 +6,7 @@ import fs from 'fs';
 import os from "os";
 import { v4 as uuidv4 } from 'uuid';
 import ytdl from "@distube/ytdl-core";
+const { getRandomIPv6 } = require("@distube/ytdl-core/lib/utils");
 
 const copyFile = promisify(fs.copyFile);
 const stat = promisify(fs.stat);
@@ -18,12 +19,12 @@ type DownloadResult = {
   error?: string;
 };
 
-export async function downloadVideo(videoId: string): Promise<DownloadResult> {
+export async function downloadVideo(videoUrl: string): Promise<DownloadResult> {
   try {
     // Get YouTube URL from form data
-    const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`
+    //const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`
     
-    if (!youtubeUrl || !ytdl.validateURL(youtubeUrl)) {
+    if (!videoUrl || !ytdl.validateURL(videoUrl)) {
       return { 
         success: false, 
         message: 'Invalid YouTube URL',
@@ -32,7 +33,7 @@ export async function downloadVideo(videoId: string): Promise<DownloadResult> {
     }
 
     // Get video info
-    const info = await ytdl.getInfo(youtubeUrl);
+    const info = await ytdl.getInfo(videoUrl);
     
     // Create temp file path
     const uniqueId = uuidv4();
@@ -41,12 +42,17 @@ export async function downloadVideo(videoId: string): Promise<DownloadResult> {
     
     // Create write stream
     const writeStream = fs.createWriteStream(filePath);
+    /*
+    const agentForARandomIP = ytdl.createAgent(undefined, {
+      localAddress: getRandomIPv6("2001:2::/48"),
+    });*/
     
     // Download video and handle as promise
     return new Promise((resolve, reject) => {
-      ytdl(youtubeUrl, {
+      ytdl(videoUrl, {
         quality: "lowest",
-        filter: "audioonly"
+        filter: "audioandvideo",
+        //agent: agentForARandomIP
       })
       .pipe(writeStream)
       .on('finish', () => {
