@@ -21,6 +21,7 @@ import { createStripeSession } from '@/utils/payments/stripe';
 import { User } from '@supabase/auth-js';
 import SignInDialog from '@/components/sign-in-dialog';
 import ProfileWidget from '@/components/profile-widget';
+import { downloadVideo } from '@/utils/useAPI';
 
 // Tier definitions
 const TIERS = {
@@ -62,6 +63,9 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loggedIn, setLoggedIn] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+  const [videoUrl, setVideoUrl] = useState<string>("")
+  const [isYoutubeVideo, setIsYoutubeVideo] = useState(false)
+  const [videoId, setVideoId] = useState<string | null>("")
 
   const router = useRouter()
   const supabase = createClient()
@@ -133,6 +137,8 @@ export default function Home() {
     
     console.log(selectedFile.name);
     setFile(selectedFile);
+    setVideoId(null)
+    setIsYoutubeVideo(false)
     setError('');
     setTranscription('');
   };
@@ -173,9 +179,34 @@ export default function Home() {
   const transcriptionsRemaining = Math.max(0, currentTier.maxTranscriptions - transcriptionsUsed);
   const isLimitReached = transcriptionsUsed >= currentTier.maxTranscriptions;
 
+  const handleVideoUrl = (): void => {
+    // Reset any previous errors
+    setError("")
+
+    // YouTube URL validation regex
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/
+    const match = videoUrl.match(youtubeRegex)
+
+    if (!match) {
+      setError("Please enter a valid YouTube URL")
+      return
+    }
+
+    // Extract the video ID
+    const extractedVideoId = match[4]
+    setVideoId(extractedVideoId)
+    setIsYoutubeVideo(true)
+    setFile(null)
+
+    // Clear the file input if it has a value
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
   const handleTranscribe = async (): Promise<void> => {
-    if (!file) {
-      setError('Please upload a video file first.');
+    if (!file && !isYoutubeVideo) {
+      setError('Please upload a video or use a valid link first.');
       return;
     }
 
@@ -189,29 +220,41 @@ export default function Home() {
     setError('');
     setProgress(10);
 
+    
     try {
+      let parsed, text, pathToFile, title;
+
       setProgress(30);
-      const formData = new FormData();
-      formData.append('file', file);
-      const pathToFile = await fetch(`/api/upload-media`, {
-        method: "POST",
-        body: formData
-      })
-      // = await uploadMedia(formData)
-      //const audioBlob = await extractAudio(file);
-      const text = await pathToFile.text()
-      const parsed = JSON.parse(text)
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const uploadedFile = await fetch(`/api/upload-media`, {
+          method: "POST",
+          body: formData
+        })
+        title = file.name
+        text = await uploadedFile.text()
+        parsed = JSON.parse(text)
+        pathToFile = parsed.path
+      } else if (isYoutubeVideo && videoId) {
+        const downloadedVideo = await downloadVideo(videoId)
+        if (downloadedVideo.success) {
+          pathToFile = downloadedVideo.filePath
+          title = "Video"
+        }
+        console.log(downloadedVideo)
+      }
       
       setProgress(60);
       const transcription = await fetch(`/api/create-transcription`, {
         method: "POST",
-        body: JSON.stringify({ title: file.name, description: "", filePath: parsed.path})
+        body: JSON.stringify({ title: title, description: "", filePath: pathToFile})
       })
       //const transcription = await createTranscription(file.name, "A video I'd like to transcribe", pathToFile.path)
       const responseText = await transcription.text()
       const parsedTranscription = JSON.parse(responseText)
-      setProgress(100);
       
+      setProgress(100);
       setTranscription(parsedTranscription.text);
 
       //console.log(transcriptiom?);
@@ -312,129 +355,198 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="flex-1 p-6 flex flex-col items-center justify-center space-y-4">
-        <h2 className="text-xl">Welcome, get started by uploading a video!</h2>
-        {/* File Upload Area */}
-        <Card className="w-full max-w-4xl">
-          <CardContent className="p-0">
-            <div
-              className={`flex flex-col items-center justify-center h-[60vh] border-2 border-dashed rounded-lg transition-colors ${
-                isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/20"
-              }`}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDragEnter={preventDefault}
-              >
-              {file ? (
-                <div className="flex flex-col items-center space-y-4 p-6">
-                  <video
-                    className="max-h-[40vh] max-w-full rounded-lg shadow-lg"
-                    controls
-                    src={URL.createObjectURL(file)}
-                    />
-                  <div className="flex flex-col items-center">
-                    <p className="font-medium">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
-                  </div>
-                  <Button variant="outline" onClick={() => {
-                    setFile(null);
-                    setTranscription("");
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = "";
-                    }
-                  }}>
-                    Remove
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center space-y-4 p-6">
-                  <Upload className="h-16 w-16 text-muted-foreground" />
-                  <div className="text-center space-y-2">
-                    <h3 className="text-lg font-medium">Upload your video</h3>
-                    <p className="text-sm text-muted-foreground max-w-md">
-                      Drag and drop your video file here, or click the button below to select a file
-                    </p>
-                  </div>
-                  <label htmlFor="video-upload">
-                    <Button asChild>
-                      <span>Select Video</span>
-                    </Button>
-                  </label>
-                  <input
-                    id="video-upload"
-                    type="file"
-                    accept="video/*"
-                    className="sr-only"
-                    onChange={handleFileChange}
-                    ref={fileInputRef}
-                    />
-                </div>
-              )}
-            </div>
-         
-            {/* Controls */}
-            <div className="my-6 p-4">
-              <button
-                className={`w-full py-3 rounded-md font-medium ${
-                  isLoading 
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : !file
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : isLimitReached && currentTier.name === 'Free'
-                  ? 'bg-red-500 text-white hover:bg-red-600'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
+      {/* Main Content - New Dynamic Layout */}
+      <div className="flex-1 p-6 flex flex-col md:flex-row gap-6">
+        {/* Left Panel - Upload */}
+        <div
+          className={`w-full ${transcription ? "md:w-1/2" : "md:w-full"} flex flex-col transition-all duration-500 ease-in-out`}
+        >
+          <h2 className="text-xl font-bold mb-4">Upload your video</h2>
+          <Card className="flex-1">
+            <CardContent className="p-0">
+              <div
+                className={`flex flex-col items-center justify-center h-[60vh] border-2 border-dashed rounded-lg transition-colors ${
+                  isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/20"
                 }`}
-                onClick={isLimitReached && currentTier.name === 'Free' ? () => setShowLimitWarning(true) : handleTranscribe}
-                disabled={isLoading || !file}
-                >
-                {isLoading ? (
-                  <span className="flex items-center justify-center">
-                    <Loader className="w-5 h-5 mr-2 animate-spin" />
-                    Transcribing... ({progress}%)
-                  </span>
-                ) : isLimitReached && currentTier.name === 'Free' ? (
-                  'Upgrade to Plus to Transcribe More Videos'
-                ) : (
-                  'Transcribe Video'
-                )}
-              </button>
-            </div>
-           
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 rounded">
-                <div className="flex">
-                  <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-                  <p className="text-red-800">{error}</p>
-                </div>
-              </div>
-            )}
-            
-            {/* Transcription Results */}
-            {transcription && (
-              <div className="border rounded-lg p-6 mx-4 mb-4">
-                <div className="flex items-center mb-4">
-                  <FileText className="w-5 h-5 text-blue-600 mr-2" />
-                  <h2 className="text-xl font-medium text-gray-800">Transcription</h2>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <p className="whitespace-pre-wrap">{transcription}</p>
-                </div>
-                <div className="flex justify-end mt-4">
-                  <button
-                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-                    onClick={() => {
-                      navigator.clipboard.writeText(transcription);
-                    }}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDragEnter={preventDefault}
+              >
+                {file ? (
+                  <div className="flex flex-col items-center space-y-4 p-6">
+                    <video
+                      className="max-h-[40vh] max-w-full rounded-lg shadow-lg"
+                      controls
+                      src={URL.createObjectURL(file)}
+                    />
+                    <div className="flex flex-col items-center">
+                      <p className="font-medium">{file.name}</p>
+                      <p className="text-sm text-muted-foreground">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setFile(null)
+                        setTranscription("")
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = ""
+                        }
+                      }}
                     >
-                    Copy to Clipboard
-                  </button>
-                </div>
+                      Remove
+                    </Button>
+                  </div>
+                ) : isYoutubeVideo && videoId ? (
+                  <div className="flex flex-col w-3/5 items-center space-y-4 p-6">
+                    <iframe
+                      className="max-h-[35vh] w-full aspect-video rounded-lg shadow-lg"
+                      src={`https://www.youtube.com/embed/${videoId}`}
+                      title="YouTube video player"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                    <div className="flex flex-col items-center">
+                      <p className="font-medium">YouTube Video</p>
+                      <p className="text-sm text-muted-foreground">ID: {videoId}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsYoutubeVideo(false)
+                        setVideoId(null)
+                        setVideoUrl("")
+                        setTranscription("")
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center space-y-4 p-6">
+                    <Upload className="h-16 w-16 text-muted-foreground" />
+                    <div className="text-center space-y-2">
+                      <h3 className="text-lg font-medium">Upload your video</h3>
+                      <p className="text-sm text-muted-foreground max-w-md">
+                        Drag and drop your video file here, or click the button below to select a file
+                      </p>
+                    </div>
+                    <label htmlFor="video-upload">
+                      <Button asChild>
+                        <span>Select Video</span>
+                      </Button>
+                    </label>
+                    <input
+                      id="video-upload"
+                      type="file"
+                      accept="video/*"
+                      className="sr-only"
+                      onChange={handleFileChange}
+                      ref={fileInputRef}
+                    />
+                    <div className="my-8 text-center">
+                      <p className="text-sm text-muted-foreground">or</p>
+                    </div>
+                    <div className="mt-4 flex w-full max-w-md mx-auto">
+                      <input
+                        type="text"
+                        placeholder="Paste YouTube URL"
+                        className="flex-1 px-4 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => setVideoUrl(e.target.value)}
+                        value={videoUrl}
+                      />
+                      <Button className="rounded-l-none" onClick={handleVideoUrl} disabled={isLoading}>
+                        Load
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Controls */}
+          <div className="mt-4">
+            <button
+              className={`w-full py-3 rounded-md font-medium ${
+                isLoading
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : (!file && !isYoutubeVideo)
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : isLimitReached && currentTier.name === "Free"
+                      ? "bg-red-500 text-white hover:bg-red-600"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+              onClick={
+                isLimitReached && currentTier.name === "Free" ? () => setShowLimitWarning(true) : handleTranscribe
+              }
+              disabled={isLoading || (!file && !isYoutubeVideo)}
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <Loader className="w-5 h-5 mr-2 animate-spin" />
+                  Transcribing... ({progress}%)
+                </span>
+              ) : isLimitReached && currentTier.name === "Free" ? (
+                "Upgrade to Plus to Transcribe More Videos"
+              ) : (
+                "Transcribe Video"
+              )}
+            </button>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 rounded">
+              <div className="flex">
+                <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+                <p className="text-red-800">{error}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Panel - Transcription - Only show when there's a transcription */}
+        {transcription && (
+          <div
+            className="w-full md:w-1/2 flex flex-col transition-all duration-500 ease-in-out transform origin-left"
+            style={{
+              animation: "expandPanel 0.5s ease-out forwards",
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4">Transcription</h2>
+            <Card className="flex-1">
+              <CardContent className="p-6">
+                <div className="h-full">
+                  <div className="flex items-center mb-4">
+                    <FileText className="w-5 h-5 text-blue-600 mr-2" />
+                    <h3 className="text-xl font-medium">Results</h3>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-md h-[40vh] overflow-auto">
+                    <p className="whitespace-pre-wrap">{transcription}</p>
+                  </div>
+                  <div className="flex justify-between mt-4">
+                    <Button
+                      variant="outline"
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                      onClick={() => setTranscription("")}
+                    >
+                      Clear Transcription
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(transcription)
+                      }}
+                    >
+                      Copy to Clipboard
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
 
       {/* Limit Reached Alert Dialog */}
@@ -460,6 +572,20 @@ export default function Home() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* CSS for animations */}
+      <style jsx global>{`
+        @keyframes expandPanel {
+          from {
+            opacity: 0;
+            transform: scaleX(0.8);
+          }
+          to {
+            opacity: 1;
+            transform: scaleX(1);
+          }
+        }
+      `}</style>
     </main>
   );
 }

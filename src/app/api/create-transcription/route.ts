@@ -9,57 +9,6 @@ export async function POST(request: NextRequest) {
   const { title, description, filePath } = await request.json();
   let transcriptionText: string;
 
-  const extractAudio = async (videoFile: File): Promise<Blob> => {
-    return new Promise<Blob>((resolve, reject) => {
-      // Create an off-screen video element
-      const video = document.createElement('video');
-      video.src = URL.createObjectURL(videoFile);
-      
-      video.onloadedmetadata = () => {
-        // Create an audio context
-        const audioContext = new (window.AudioContext)();
-        const source = audioContext.createMediaElementSource(video);
-        const destination = audioContext.createMediaStreamDestination();
-        source.connect(destination);
-        
-        // Create a MediaRecorder to capture audio
-        const recorder = new MediaRecorder(destination.stream);
-        const chunks: BlobPart[] = [];
-        
-        recorder.ondataavailable = (e) => {
-          chunks.push(e.data);
-        };
-        
-        recorder.onstop = () => {
-          const blob = new Blob(chunks, { type: 'audio/webm' });
-          resolve(blob);
-        };
-        
-        // Start recording and playing
-        recorder.start();
-        video.play();
-        
-        // Stop recording when the video ends
-        video.onended = () => {
-          recorder.stop();
-          video.remove();
-        };
-        
-        // Fallback if video.onended doesn't fire
-        setTimeout(() => {
-          if (recorder.state === 'recording') {
-            recorder.stop();
-            video.remove();
-          }
-        }, video.duration * 1000 + 1000); // Add 1 second buffer
-      };
-      
-      video.onerror = () => {
-        reject(new Error('Failed to load video'));
-      };
-    });
-  };
-
   const transcribeAudio = async (filePath: string): Promise<string> => {
     if (!openai.apiKey) {
       throw new Error('Please enter your API key');
@@ -73,7 +22,7 @@ export async function POST(request: NextRequest) {
       const transcription = await openai.audio.transcriptions.create({
         file: fs.createReadStream(filePath), 
         model: "whisper-1",
-        response_format: "srt"
+        response_format: "srt",
       });
       console.log(transcription)
       return transcription.toString();
