@@ -226,17 +226,17 @@ export default function Home() {
 
       setProgress(30);
       if (file) {
-        /*const formData = new FormData();
+        const formData = new FormData();
         formData.append('file', file);
         const uploadedFile = await fetch(`/api/upload-media`, {
           method: "POST",
           body: formData
-        })*/
+        })
         title = file.name
-        //text = await uploadedFile.text()
-        //parsed = JSON.parse(text)
-        //pathToFile = parsed.path
-        pathToFile = file.formData
+        text = await uploadedFile.text()
+        parsed = JSON.parse(text)
+        pathToFile = parsed.path
+//        pathToFile = file.formData
       } else if (isYoutubeVideo && videoId) {
         const downloadedVideo = await downloadVideo(videoUrl)
         if (downloadedVideo.success) {
