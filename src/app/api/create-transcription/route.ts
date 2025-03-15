@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         model: "whisper-1",
         response_format: "srt",
       });
-      console.log(transcription)
+      //console.log(transcription)
       return transcription.toString();
     } catch (error) {
       if (error instanceof Error) {
@@ -106,5 +106,5 @@ export async function POST(request: NextRequest) {
   }
 
   //TODO : Return the transcript
-  return NextResponse.json({text: transcriptionText, transcription: transcription})
+  return NextResponse.json({text: transcriptionText })
 }

@@ -260,7 +260,7 @@ export default function Home() {
         text = await uploadedFile.text()
         parsed = JSON.parse(text)
         pathToFile = parsed.path
-//        pathToFile = file.formData
+        //pathToFile = file.formData
       } else if (isYoutubeVideo && videoId) {
         const downloadedVideo = await downloadVideo(videoUrl)
         if (downloadedVideo.success) {
@@ -282,7 +282,7 @@ export default function Home() {
       setProgress(100);
       setTranscription(parsedTranscription.text);
 
-      console.log(parsedTranscription);
+      //console.log(parsedTranscription);
 
     } catch (err) {
       if (err instanceof Error) {

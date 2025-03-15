@@ -6,9 +6,8 @@ import fs from 'fs';
 import os from "os";
 import { v4 as uuidv4 } from 'uuid';
 import ytdl from "@distube/ytdl-core";
-const { getRandomIPv6 } = require("@distube/ytdl-core/lib/utils");
 
-const copyFile = promisify(fs.copyFile);
+//const copyFile = promisify(fs.copyFile);
 const stat = promisify(fs.stat);
 const mkdir = promisify(fs.mkdir);
 
