@@ -22,6 +22,7 @@ import { User } from '@supabase/auth-js';
 import SignInDialog from '@/components/sign-in-dialog';
 import ProfileWidget from '@/components/profile-widget';
 import { downloadVideo } from '@/utils/useAPI';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Tier definitions
 const TIERS = {
@@ -50,6 +51,26 @@ const SUPPORTED_VIDEO_TYPES = [
   'video/x-ms-wmv', 'video/x-matroska'
 ];
 
+// Supported languages for translation
+const LANGUAGES = [
+  { code: "es", name: "Spanish" },
+  { code: "fr", name: "French" },
+  { code: "de", name: "German" },
+  { code: "it", name: "Italian" },
+  { code: "pt", name: "Portuguese" },
+  { code: "ru", name: "Russian" },
+  { code: "zh", name: "Chinese (Simplified)" },
+  { code: "ja", name: "Japanese" },
+  { code: "ko", name: "Korean" },
+  { code: "ar", name: "Arabic" },
+  { code: "hi", name: "Hindi" },
+  { code: "nl", name: "Dutch" },
+  { code: "sv", name: "Swedish" },
+  { code: "pl", name: "Polish" },
+  { code: "tr", name: "Turkish" },
+  { code: "vi", name: "Vietnamese" },
+]
+
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [transcription, setTranscription] = useState<string>('');
@@ -66,6 +87,9 @@ export default function Home() {
   const [videoUrl, setVideoUrl] = useState<string>("")
   const [isYoutubeVideo, setIsYoutubeVideo] = useState(false)
   const [videoId, setVideoId] = useState<string | null>("")
+  const [targetLanguage, setTargetLanguage] = useState<string>("es")
+  const [translatedText, setTranslatedText] = useState<string>("")
+  const [isTranslating, setIsTranslating] = useState<boolean>(false)
 
   const router = useRouter()
   const supabase = createClient()
@@ -258,7 +282,7 @@ export default function Home() {
       setProgress(100);
       setTranscription(parsedTranscription.text);
 
-      //console.log(transcriptiom?);
+      console.log(parsedTranscription);
 
     } catch (err) {
       if (err instanceof Error) {
@@ -526,14 +550,39 @@ export default function Home() {
                   <div className="bg-gray-50 p-4 rounded-md h-[40vh] overflow-auto">
                     <p className="whitespace-pre-wrap">{transcription}</p>
                   </div>
-                  <div className="flex justify-between mt-4">
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <Select value={targetLanguage} onValueChange={setTargetLanguage}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Target Language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LANGUAGES.map((language) => (
+                          <SelectItem key={language.code} value={language.code}>
+                            {language.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Button
-                      variant="outline"
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                      onClick={() => setTranscription("")}
-                    >
-                      Clear Transcription
-                    </Button>
+                        onClick={() => {}}
+                        disabled={isTranslating || !transcription}
+                        className="flex items-center gap-2"
+                      >
+                        {isTranslating ? (
+                          <>
+                            <Loader className="h-4 w-4 animate-spin" />
+                            Translating...
+                          </>
+                        ) : (
+                          <>
+                            <Languages className="h-4 w-4" />
+                            Translate
+                          </>
+                        )}
+                      </Button>
+                  </div>
+                  <div className="flex justify-between mt-4">
                     <Button
                       variant="outline"
                       onClick={() => {

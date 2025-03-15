@@ -8,6 +8,7 @@ const openai = new OpenAI({ apiKey: "sk-proj-Sp-raoO38XfT1mewLg5HXaydwPFHtvEIY2r
 export async function POST(request: NextRequest) {
   const { title, description, filePath } = await request.json();
   let transcriptionText: string;
+  let transcription;
 
   const transcribeAudio = async (filePath: string): Promise<string> => {
     if (!openai.apiKey) {
@@ -91,8 +92,8 @@ export async function POST(request: NextRequest) {
       console.log("File created: " + file.name)*/
 
     //Send to Speech-to-text API for transcription
-    const transcription = await transcribeAudio(filePath)
-    console.log(transcription)
+    transcription = await transcribeAudio(filePath)
+    //console.log(transcription)
     //Return the transcription 
     transcriptionText = transcription;
   } catch (error) {
@@ -105,5 +106,5 @@ export async function POST(request: NextRequest) {
   }
 
   //TODO : Return the transcript
-  return NextResponse.json({text: transcriptionText})
+  return NextResponse.json({text: transcriptionText, transcription: transcription})
 }
