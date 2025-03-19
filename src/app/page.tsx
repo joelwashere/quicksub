@@ -21,7 +21,7 @@ import { createStripeSession } from '@/utils/payments/stripe';
 import { User } from '@supabase/auth-js';
 import SignInDialog from '@/components/sign-in-dialog';
 import ProfileWidget from '@/components/profile-widget';
-import { downloadVideo } from '@/utils/useAPI';
+import { downloadVideo, translate } from '@/utils/useAPI';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Tier definitions
@@ -53,6 +53,7 @@ const SUPPORTED_VIDEO_TYPES = [
 
 // Supported languages for translation
 const LANGUAGES = [
+  { code: "en", name: "English" },
   { code: "es", name: "Spanish" },
   { code: "fr", name: "French" },
   { code: "de", name: "German" },
@@ -87,12 +88,49 @@ export default function Home() {
   const [videoUrl, setVideoUrl] = useState<string>("")
   const [isYoutubeVideo, setIsYoutubeVideo] = useState(false)
   const [videoId, setVideoId] = useState<string | null>("")
-  const [targetLanguage, setTargetLanguage] = useState<string>("es")
-  const [translatedText, setTranslatedText] = useState<string>("")
+  const [targetLanguage, setTargetLanguage] = useState<string>("en")
+  let translatedText = new Map<string, string>()
   const [isTranslating, setIsTranslating] = useState<boolean>(false)
 
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    if(translatedText.has(targetLanguage))
+      setTranscription(translatedText.get(targetLanguage) || transcription)
+  }, [targetLanguage])
+
+  const handleTranslation = async () => {
+    console.log("Translating now...")
+    setIsTranslating(true)
+    const og = translatedText.get(targetLanguage)
+    if(translatedText?.has(targetLanguage) && typeof og == "string") {
+      setTranscription(og)
+      console.log("Already transcribed this")
+      return
+    }
+    
+    try {
+      const original = translatedText.get("en")
+      console.log(original)
+      if(typeof original != "string")
+        throw new Error("No english transcription available")
+        
+      const translation = await translate(targetLanguage, original)
+      
+      if(typeof translation != "string")
+        throw new Error("Translation failed")
+      
+      setTranscription(translation)
+      translatedText.set(targetLanguage, translation)
+
+    } catch(error) {
+      setIsTranslating(false)
+      //setError(error.message)
+      console.log("Translation error " + error)
+    }
+    setIsTranslating(false)
+  }
 
   useEffect(() => {
     initUI()
@@ -271,18 +309,27 @@ export default function Home() {
       }
       
       setProgress(60);
-      const transcription = await fetch(`/api/create-transcription`, {
+      const newTranscription = await fetch(`/api/create-transcription`, {
         method: "POST",
         body: JSON.stringify({ title: title, description: "", filePath: pathToFile})
       })
       //const transcription = await createTranscription(file.name, "A video I'd like to transcribe", pathToFile.path)
-      const responseText = await transcription.text()
+      const responseText = await newTranscription.text()
       const parsedTranscription = JSON.parse(responseText)
       
       setProgress(100);
       setTranscription(parsedTranscription.text);
+      
+      translatedText.clear()
+      translatedText.set("en", transcription)
 
-      //console.log(parsedTranscription);
+      //Reset the saved translations
+      if(targetLanguage != "en") {
+        setTargetLanguage(targetLanguage)
+        handleTranslation()
+      }
+
+      console.log(translatedText.entries());
 
     } catch (err) {
       if (err instanceof Error) {
@@ -565,7 +612,7 @@ export default function Home() {
                       </SelectContent>
                     </Select>
                     <Button
-                        onClick={() => {}}
+                        onClick={handleTranslation}
                         disabled={isTranslating || !transcription}
                         className="flex items-center gap-2"
                       >

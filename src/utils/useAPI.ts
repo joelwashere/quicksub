@@ -6,6 +6,28 @@ import fs from 'fs';
 import os from "os";
 import { v4 as uuidv4 } from 'uuid';
 import ytdl from "@distube/ytdl-core";
+import OpenAI from "openai";
+
+//export const openai = new OpenAI({ apiKey: "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" });
+
+type LANGUAGES = [
+  { code: "es", name: "Spanish" },
+  { code: "fr", name: "French" },
+  { code: "de", name: "German" },
+  { code: "it", name: "Italian" },
+  { code: "pt", name: "Portuguese" },
+  { code: "ru", name: "Russian" },
+  { code: "zh", name: "Chinese (Simplified)" },
+  { code: "ja", name: "Japanese" },
+  { code: "ko", name: "Korean" },
+  { code: "ar", name: "Arabic" },
+  { code: "hi", name: "Hindi" },
+  { code: "nl", name: "Dutch" },
+  { code: "sv", name: "Swedish" },
+  { code: "pl", name: "Polish" },
+  { code: "tr", name: "Turkish" },
+  { code: "vi", name: "Vietnamese" },
+]
 
 //const copyFile = promisify(fs.copyFile);
 const stat = promisify(fs.stat);
@@ -17,6 +39,23 @@ type DownloadResult = {
   message: string;
   error?: string;
 };
+
+const openai = new OpenAI({ apiKey: "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" });
+
+export async function translate(targetLang: string, text: string) {
+
+  //Validate text
+  //Send to OpenAI with prompt
+  const translation = await openai.completions.create({
+    model: "gpt-3.5-turbo-instruct-0914",
+    prompt: `You are an expert translator. Translate the following text to ${targetLang}: ${text}. This is an SRT file. Only change lines that contain words`,
+    max_tokens: 3000
+  });
+  //Return result
+  console.log(translation)
+  
+  return translation.choices[0].text;
+}
 
 export async function downloadVideo(videoUrl: string): Promise<DownloadResult> {
   try {
