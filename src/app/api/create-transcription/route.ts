@@ -63,12 +63,15 @@ export async function POST(request: NextRequest) {
       throw new Error("Error: " + error.message)
 
     //Transcription info
-    //console.log(data)
+    console.log(data)
 
     {
+      const currentYearMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
       const { data } = await supabase
         .from("usage_tracking")
         .select("transcriptions_created")
+        .eq("user_id", user.id)
+        .eq("year_month", currentYearMonth)
         .single()
       
       if(!data)
