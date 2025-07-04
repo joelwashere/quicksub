@@ -1,10 +1,12 @@
+'use server'
 
 import { createClient as createClientLocal } from "@/utils/supabase/client";
 import { Stripe } from "stripe";
 
-const stripe = new Stripe("sk_test_51QykwoPDHTn4Rw2wVWrFxuKoVFc2T2OWyNQZefvO1key4MIywA4fsBh9W4YZEZedlPoTdwNVLfKP2A22d7dIYhmn00t3bSetbx")
-
 export async function createStripeSession() {
+
+    // Instantiate Stripe only on the server to avoid bundling the secret key in the client.
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
     try {
         const supabase = await createClientLocal();

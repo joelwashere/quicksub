@@ -8,7 +8,8 @@ import { v4 as uuidv4 } from 'uuid';
 import ytdl from "@distube/ytdl-core";
 import OpenAI from "openai";
 
-//export const openai = new OpenAI({ apiKey: "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" });
+// If you prefer to initialize a global OpenAI client here, uncomment the line below and provide your key in an environment variable.
+// export const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 type LANGUAGES = [
   { code: "es", name: "Spanish" },
@@ -40,9 +41,14 @@ type DownloadResult = {
   error?: string;
 };
 
-const openai = new OpenAI({ apiKey: "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" });
-
+//export const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 export async function translate(targetLang: string, text: string) {
+
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  if (!openai.apiKey) {
+    throw new Error("The OPENAI_API_KEY environment variable is not set.");
+  }
 
   //Validate text
   //Send to OpenAI with prompt
