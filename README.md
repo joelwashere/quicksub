@@ -11,7 +11,7 @@ Quicksub is a small web app that turns any video into **instant, multilingual su
 3. With one click, subtitles can be machine-translated into 15+ languages via GPT-3.5.
 4. Download the result or keep it stored in your account.
 
-There's a **Free** tier (2 transcriptions / month) you can use at quicksub.app or you can self host :)
+There's a **Free** tier (2 transcriptions / month) you can use at [quicksub.app](url) or you can self host :)
 
 Tech stack:
 - Next.js 14 App Router & React Server Components
